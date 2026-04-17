@@ -190,3 +190,26 @@ while is_game_running:
     draw_hud(screen, current_score, player_lives)
 
     pygame.display.flip()
+
+# -----------------------------------------------
+# Game Over Screen
+# -----------------------------------------------
+screen.fill(COLOUR_BACKGROUND)
+game_over_text = heading_font.render("GAME OVER", True, COLOUR_RED)
+final_score_text = info_font.render("Final Score: " + str(current_score), True, COLOUR_WHITE)
+exit_prompt_text = small_font.render("Close the window to exit", True, COLOUR_GREY)
+
+# Centre the text on the screen
+screen.blit(game_over_text, (SCREEN_WIDTH // 2 - game_over_text.get_width() // 2, 180))
+screen.blit(final_score_text, (SCREEN_WIDTH // 2 - final_score_text.get_width() // 2, 250))
+screen.blit(exit_prompt_text, (SCREEN_WIDTH // 2 - exit_prompt_text.get_width() // 2, 310))
+pygame.display.flip()
+
+# Wait for the player to close the window
+waiting_for_close = True
+while waiting_for_close:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            waiting_for_close = False
+
+pygame.quit()
