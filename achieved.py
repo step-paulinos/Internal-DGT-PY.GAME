@@ -82,6 +82,27 @@ def draw_rock(surface, rock):
     pygame.draw.circle(surface, (200, 120, 60), (int(rock_x) - 3, int(rock_y) - 3), 4)
 
 
+def check_collision(rock, player_x):
+    """
+    Check if a rock has hit the player using bounding box collision.
+    Returns True if the rock and player are overlapping.
+    """
+    rock_x, rock_y, _ = rock
+    # Create collision boxes for both objects
+    rock_left = rock_x - ROCK_RADIUS
+    rock_right = rock_x + ROCK_RADIUS
+    rock_top = rock_y - ROCK_RADIUS
+    rock_bottom = rock_y + ROCK_RADIUS
+
+    player_right = player_x + PLAYER_WIDTH
+    player_bottom = PLAYER_Y_POSITION + PLAYER_HEIGHT
+
+    # Check if the two boxes overlap on both axes
+    horizontal_overlap = rock_right > player_x and rock_left < player_right
+    vertical_overlap = rock_bottom > PLAYER_Y_POSITION and rock_top < player_bottom
+    return horizontal_overlap and vertical_overlap
+
+
 def draw_hud(surface, score, lives):
     """Draw the Heads-Up Display showing score and lives in the top corners."""
     score_surface = info_font.render("Score: " + str(score), True, COLOUR_WHITE)
@@ -93,3 +114,79 @@ def draw_hud(surface, score, lives):
     for i in range(lives):
         heart_x = SCREEN_WIDTH - 30 - (i * 30)
         pygame.draw.circle(surface, COLOUR_RED, (heart_x, 25), 10)
+
+
+# -----------------------------------------------
+# Main game loop
+# -----------------------------------------------
+while is_game_running:
+    clock.tick(FRAMES_PER_SECOND)
+
+    # --- Handle window close and quit events ---
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            is_game_running = False
+
+    # --- Handle player keyboard input ---
+    keys_pressed = pygame.key.get_pressed()
+
+    if keys_pressed[pygame.K_LEFT]:
+        player_x_position -= PLAYER_MOVE_SPEED
+    if keys_pressed[pygame.K_RIGHT]:
+        player_x_position += PLAYER_MOVE_SPEED
+
+    # Boundary checking: keep player fully inside the screen edges
+    if player_x_position < 0:
+        player_x_position = 0
+    if player_x_position > SCREEN_WIDTH - PLAYER_WIDTH:
+        player_x_position = SCREEN_WIDTH - PLAYER_WIDTH
+
+    # --- Spawn new rocks at regular intervals ---
+    frames_since_last_rock += 1
+    if frames_since_last_rock >= ROCK_SPAWN_INTERVAL:
+        new_rock_x = random.randint(ROCK_RADIUS, SCREEN_WIDTH - ROCK_RADIUS)
+        new_rock_speed = random.randint(ROCK_MIN_SPEED, ROCK_MAX_SPEED)
+        falling_rocks.append([new_rock_x, -ROCK_RADIUS, new_rock_speed])
+        frames_since_last_rock = 0
+
+    # --- Update rock positions and detect events ---
+    rocks_to_remove = []
+
+    for rock in falling_rocks:
+        # Move each rock downward by its speed
+        rock[1] += rock[2]
+
+        # Rock passed the bottom of the screen — player dodged it, award a point
+        if rock[1] > SCREEN_HEIGHT + ROCK_RADIUS:
+            rocks_to_remove.append(rock)
+            current_score += 1
+
+        # Boundary case: rock hit the player — remove rock and deduct a life
+        elif check_collision(rock, player_x_position):
+            rocks_to_remove.append(rock)
+            player_lives -= 1
+
+    # Clean up rocks that are no longer active
+    for finished_rock in rocks_to_remove:
+        if finished_rock in falling_rocks:
+            falling_rocks.remove(finished_rock)
+
+    # Check win/lose condition: game ends when player runs out of lives
+    if player_lives <= 0:
+        is_game_running = False
+
+    # --- Render the frame ---
+    screen.fill(COLOUR_BACKGROUND)
+
+    # Draw a subtle ground line to show the playfield boundary
+    pygame.draw.line(screen, COLOUR_GREY, (0, SCREEN_HEIGHT - 40),
+                     (SCREEN_WIDTH, SCREEN_HEIGHT - 40), 1)
+
+    draw_player(screen, player_x_position)
+
+    for rock in falling_rocks:
+        draw_rock(screen, rock)
+
+    draw_hud(screen, current_score, player_lives)
+
+    pygame.display.flip()
