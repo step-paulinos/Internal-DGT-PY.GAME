@@ -101,3 +101,43 @@ while game_running:
     # Check if game is over
     if lives <= 0:
         game_running = False
+
+    # --- Draw Everything ---
+    screen.fill(BLACK)  # Clear the screen with black background
+
+    # Draw the player as a blue rectangle
+    pygame.draw.rect(screen, BLUE, (player_x, player_y, player_width, player_height))
+
+    # Draw all the rocks as grey circles
+    for rock in rocks:
+        pygame.draw.circle(screen, GREY, (rock[0], rock[1]), 10)
+
+    # Display the score and lives
+    score_text = font.render("Score: " + str(score), True, WHITE)
+    lives_text = font.render("Lives: " + str(lives), True, YELLOW)
+    screen.blit(score_text, (10, 10))
+    screen.blit(lives_text, (10, 45))
+
+    # Update the display
+    pygame.display.flip()
+
+# --- Game Over Screen ---
+screen.fill(BLACK)
+over_font = pygame.font.SysFont("Arial", 48)
+over_text = over_font.render("GAME OVER", True, RED)
+final_text = font.render("Final Score: " + str(score), True, WHITE)
+quit_text = font.render("Close the window to exit", True, GREY)
+
+screen.blit(over_text, (170, 180))
+screen.blit(final_text, (220, 250))
+screen.blit(quit_text, (170, 300))
+pygame.display.flip()
+
+# Wait until the player closes the window
+waiting = True
+while waiting:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            waiting = False
+
+pygame.quit()
