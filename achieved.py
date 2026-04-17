@@ -64,3 +64,40 @@ while game_running:
         player_x = 0
     if player_x > 550:
         player_x = 550
+
+    # --- Spawn Rocks ---
+    rock_timer += 1
+    if rock_timer >= 40:  # A new rock spawns every 40 frames
+        rock_x = random.randint(0, 570)
+        rock_y = -20
+        rock_speed = random.randint(3, 7)
+        rocks.append([rock_x, rock_y, rock_speed])  # Add rock to the list
+        rock_timer = 0
+
+    # --- Move Rocks and Check Collisions ---
+    rocks_to_remove = []  # Rocks that have gone off screen or hit the player
+
+    for rock in rocks:
+        rock[1] += rock[2]  # Move rock down by its speed
+
+        # Check if rock went off the bottom of the screen
+        if rock[1] > 520:
+            rocks_to_remove.append(rock)
+            score += 1  # Player earns a point for dodging a rock
+
+        # Check if rock hit the player (simple box collision)
+        if (rock[0] < player_x + player_width and
+                rock[0] + 20 > player_x and
+                rock[1] < player_y + player_height and
+                rock[1] + 20 > player_y):
+            rocks_to_remove.append(rock)
+            lives -= 1  # Player loses a life
+
+    # Remove rocks that are done
+    for rock in rocks_to_remove:
+        if rock in rocks:
+            rocks.remove(rock)
+
+    # Check if game is over
+    if lives <= 0:
+        game_running = False
