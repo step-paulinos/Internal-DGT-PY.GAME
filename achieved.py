@@ -62,3 +62,34 @@ frames_since_last_rock = 0    # Tracks when to spawn the next rock
 current_score = 0
 player_lives = 3
 is_game_running = True
+
+
+def draw_player(surface, x_pos):
+    """Draw the player's ship as a blue rectangle at the given x position."""
+    pygame.draw.rect(surface, COLOUR_PLAYER,
+                     (x_pos, PLAYER_Y_POSITION, PLAYER_WIDTH, PLAYER_HEIGHT))
+    # Draw a small cockpit on top of the ship
+    cockpit_x = x_pos + PLAYER_WIDTH // 2 - 8
+    cockpit_y = PLAYER_Y_POSITION - 10
+    pygame.draw.rect(surface, COLOUR_WHITE, (cockpit_x, cockpit_y, 16, 12))
+
+
+def draw_rock(surface, rock):
+    """Draw a single rock as a brown circle at its current position."""
+    rock_x, rock_y, _ = rock
+    pygame.draw.circle(surface, COLOUR_ROCK, (int(rock_x), int(rock_y)), ROCK_RADIUS)
+    # Inner highlight to make it look more like a rock
+    pygame.draw.circle(surface, (200, 120, 60), (int(rock_x) - 3, int(rock_y) - 3), 4)
+
+
+def draw_hud(surface, score, lives):
+    """Draw the Heads-Up Display showing score and lives in the top corners."""
+    score_surface = info_font.render("Score: " + str(score), True, COLOUR_WHITE)
+    lives_surface = info_font.render("Lives: " + str(lives), True, COLOUR_YELLOW)
+    surface.blit(score_surface, (10, 10))
+    surface.blit(lives_surface, (10, 45))
+
+    # Draw lives as small coloured circles for visual clarity
+    for i in range(lives):
+        heart_x = SCREEN_WIDTH - 30 - (i * 30)
+        pygame.draw.circle(surface, COLOUR_RED, (heart_x, 25), 10)
